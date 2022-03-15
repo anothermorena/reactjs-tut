@@ -1,38 +1,66 @@
-import { useState } from 'react' //this is a react hook 
+import { useState } from 'react';
+import { FaTrashAlt } from 'react-icons/fa'; //imports fontawesome icons
 
 const Content = () => {
-    //here we use array destrucring to get all these from the useState object or Hook
-    //name provides the current state of this component at any given time
-    //setName updates or set the state of the component as changes occur
-    const [name,setName] = useState("Morena"); //we pass data to this object which acts as default data/state as the component loads
-    const [count,setCount] = useState(0);
+    //default state that the app will open with
+    const [items, setItems] = useState([
+        {
+            id: 1,
+            checked: true,
+            item: "One half pound bag of Cocoa Covered Almonds Unsalted"
+        },
+        {
+            id: 2,
+            checked: false,
+            item: "Item 2"
+        },
+        {
+            id: 3,
+            checked: false,
+            item: "Item 3"
+        }
+    ]);
 
-    //in js/react functions are typically started with handle. It is just a convention
-    const handleNameChange = () => {
-        const names = ['Bob','Kevin','Dave'];
-        const int = Math.floor(Math.random() * 3); //generates a random number betwwen 0 and 2
-        setName(names[int]);
+    const handleCheck = (id) => {
+        const listItems = items.map((item) => item.id === id ? { ...item, checked: !item.checked } : item);
+        setItems(listItems); //update the state
+        localStorage.setItem('shoppinglist', JSON.stringify(listItems)); //saves the items to our shopping list in our local storage
     }
 
-    //handling click events
-    const handleClick = () => {
-        setCount(count + 1);
-        console.log(count); 
+    const handleDelete = (id) => {
+        const listItems = items.filter((item) => item.id !== id);
+        setItems(listItems);
+        localStorage.setItem('shoppinglist', JSON.stringify(listItems));
     }
-
-    const handleClick2 = name => { 
-        console.log(`${name} was clicked`);
-    }
-
-    const handleClick3 = e => {
-        console.log(e.target);
-    }
-
+   
 
   return ( 
     <main>
-           
-    </main>
+    {items.length ? (
+        <ul>
+            {items.map((item) => (
+                <li className="item" key={item.id /* Each list item needs a key in react for react to keep track of changes*/}>
+                    <input
+                        type="checkbox"
+                        onChange={() => handleCheck(item.id)}
+                        checked={item.checked}
+                    />
+                    <label
+                        style={(item.checked) ? { textDecoration: 'line-through' } : null}
+                        onDoubleClick={() => handleCheck(item.id)}
+                    >{item.item}</label>
+                    <FaTrashAlt
+                        onClick={() => handleDelete(item.id)}
+                        role="button"
+                        tabIndex="0" 
+                    />
+                </li>
+            ))}
+        </ul>
+    ) : (
+        <p style={{ marginTop: '2rem' }}>Your list is empty.</p>
+    )}
+</main>
   )
 }
 
