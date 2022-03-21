@@ -5,6 +5,7 @@ import SearchItem from './SearchItem'
 import Content from './Content';
 import Footer from './Footer';
 import { useState,useEffect } from 'react';
+import apiRequest from './apiRequest';
 
 //the component is actually a function. Modern react uses functional components
 //but you may see some legacy code with class components. 
@@ -21,14 +22,15 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
 
 
+
   //this is the ideal way to load data into our apps esp when working with API'S
   useEffect(() => {
+    //This is read as far as CRUD operations is concerned
     const fetchItems = async () => {
       try {
         const response = await fetch(API_URL);
         if(!response.ok) throw Error("Did not receive expected data");
         const listItems = await response.json();
-
         setItems(listItems);
         setFetchError(null);
       } catch (err) {
@@ -47,21 +49,69 @@ function App() {
   
   },[]);
 
-  const addItem = (item) => {
+  const addItem = async (item) => {
     const id = items.length ? items[items.length - 1].id + 1 : 1;
     const myNewItem = { id, checked: false, item };
     const listItems = [...items, myNewItem];
     setItems(listItems);
+
+    //update our API options for a post request
+    const postOptions = {
+      method: "POST", //the HTTP Verb that the request will use
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(myNewItem) //the new item that we want to post to our api. 
+    }
+
+    //lets send the request
+    const result = await apiRequest(API_URL,postOptions);
+    if(result) setFetchError(result);  
+  
   }
 
-  const handleCheck = id => {
+  const handleCheck = async (id) => {
       const listItems = items.map((item) => item.id === id ? { ...item, checked: !item.checked } : item);
       setItems(listItems);
+
+   
+    //get the item that is checked
+    const myItem = listItems.filter((item) => item.id === id);
+    //define update options
+    const updateOptions = {
+      method: "PATCH", //the HTTP Verb that the request will use
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({checked:myItem[0].checked}) 
+    };
+
+    //define the request URL: Its a little different than the URL used by GET & POST Verbs
+    const reqURL = `${API_URL}/${id}`; // we are accessing a specific post and we are updating it with patch
+
+    //lets send the request
+    //the API request only returns an error
+    const result = await apiRequest(reqURL,updateOptions);
+    if(result) setFetchError(result);  
+
   }
 
-  const handleDelete = id => {
+  const handleDelete = async (id) => {
       const listItems = items.filter((item) => item.id !== id);
       setItems(listItems);
+
+    //handle deleteing items from our API
+    const deleteOptions = {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json"
+      }
+
+    }
+
+    const reqURL = `${API_URL}/${id}`;
+    const result = await apiRequest(reqURL,deleteOptions);
+    if(result) setFetchError(result);  
   }
 
   const handleSubmit = e => {
