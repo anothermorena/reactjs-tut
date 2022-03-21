@@ -2,7 +2,7 @@ import { FaTrashAlt } from 'react-icons/fa'; //imports fontawesome icons
 
 const LineItem = ({item,handleCheck,handleDelete}) => {
   return (
-    <li className="item">
+    <li className="item"> 
             <input
                 type="checkbox"
                 onChange={() => handleCheck(item.id)}
